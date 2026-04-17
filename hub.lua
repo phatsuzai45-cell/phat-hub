@@ -1,5 +1,5 @@
--- Load nhân vật
-repeat wait() until game.Players.LocalPlayer.Character
+-- Load
+repeat task.wait() until game.Players.LocalPlayer.Character
 
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
@@ -8,26 +8,29 @@ local char = player.Character or player.CharacterAdded:Wait()
 local humanoid = char:WaitForChild("Humanoid")
 local root = char:WaitForChild("HumanoidRootPart")
 
+-- Window đẹp hơn
 local Window = Rayfield:CreateWindow({
-    Name = "Phat Hub Pro v4",
-    LoadingTitle = "Loading...",
-    LoadingSubtitle = "by Phat",
-    ConfigurationSaving = {Enabled = false}
+    Name = "Phat Hub Premium",
+    LoadingTitle = "Phat Hub",
+    LoadingSubtitle = "Premium UI",
+    ConfigurationSaving = {
+        Enabled = true,
+        FolderName = "PhatHub",
+        FileName = "Config"
+    }
 })
 
 -- ================= FPS =================
-local TabFPS = Window:CreateTab("FPS", 4483362458)
+local FPS = Window:CreateTab("⚡ FPS", 4483362458)
 
-local fpsOn = false
+FPS:CreateSection("Performance")
 
-TabFPS:CreateToggle({
+FPS:CreateToggle({
     Name = "FPS Boost",
     CurrentValue = false,
     Callback = function(state)
-        fpsOn = state
-
-        if fpsOn then
-            for i,v in pairs(game:GetDescendants()) do
+        if state then
+            for _,v in pairs(game:GetDescendants()) do
                 if v:IsA("Texture") or v:IsA("Decal") then
                     v:Destroy()
                 elseif v:IsA("ParticleEmitter") then
@@ -40,100 +43,72 @@ TabFPS:CreateToggle({
 })
 
 -- ================= PLAYER =================
-local TabPlayer = Window:CreateTab("Player", 4483362458)
+local PlayerTab = Window:CreateTab("🧍 Player", 4483362458)
 
--- WalkSpeed Toggle
-local speedOn = false
+PlayerTab:CreateSection("Movement")
 
-TabPlayer:CreateToggle({
-    Name = "Speed x3",
-    CurrentValue = false,
-    Callback = function(state)
-        speedOn = state
-
-        while speedOn do
-            wait()
-            humanoid.WalkSpeed = 60
-        end
-
-        humanoid.WalkSpeed = 16
+PlayerTab:CreateSlider({
+    Name = "Speed",
+    Range = {16,120},
+    Increment = 1,
+    CurrentValue = 16,
+    Callback = function(v)
+        humanoid.WalkSpeed = v
     end
 })
 
--- Jump Toggle
-local jumpOn = false
-
-TabPlayer:CreateToggle({
-    Name = "High Jump",
-    CurrentValue = false,
-    Callback = function(state)
-        jumpOn = state
-
-        while jumpOn do
-            wait()
-            humanoid.JumpPower = 100
-        end
-
-        humanoid.JumpPower = 50
+PlayerTab:CreateSlider({
+    Name = "Jump",
+    Range = {50,120},
+    Increment = 1,
+    CurrentValue = 50,
+    Callback = function(v)
+        humanoid.JumpPower = v
     end
 })
 
--- ================= FLY =================
-local flyOn = false
+-- ================= FARM SUPPORT =================
+local FarmTab = Window:CreateTab("⚔️ Farm", 4483362458)
 
-TabPlayer:CreateToggle({
-    Name = "Fly",
-    CurrentValue = false,
-    Callback = function(state)
-        flyOn = state
+FarmTab:CreateSection("Support Farm")
 
-        if flyOn then
-            local bv = Instance.new("BodyVelocity")
-            bv.MaxForce = Vector3.new(9e9,9e9,9e9)
-            bv.Parent = root
+FarmTab:CreateButton({
+    Name = "Teleport gần quái gần nhất",
+    Callback = function()
+        local nearest
+        local dist = math.huge
 
-            while flyOn do
-                wait()
-                bv.Velocity = workspace.CurrentCamera.CFrame.LookVector * 50
-            end
-
-            bv:Destroy()
-        end
-    end
-})
-
--- ================= NOCLIP =================
-local noclipOn = false
-
-TabPlayer:CreateToggle({
-    Name = "Noclip",
-    CurrentValue = false,
-    Callback = function(state)
-        noclipOn = state
-
-        while noclipOn do
-            wait()
-            for i,v in pairs(char:GetDescendants()) do
-                if v:IsA("BasePart") then
-                    v.CanCollide = false
+        for _,v in pairs(workspace:GetDescendants()) do
+            if v:FindFirstChild("Humanoid") and v ~= char then
+                local d = (v.HumanoidRootPart.Position - root.Position).Magnitude
+                if d < dist then
+                    dist = d
+                    nearest = v
                 end
             end
         end
+
+        if nearest then
+            root.CFrame = nearest.HumanoidRootPart.CFrame * CFrame.new(0,5,0)
+        end
+    end
+})
+
+FarmTab:CreateButton({
+    Name = "Nhảy server (server hop)",
+    Callback = function()
+        game:GetService("TeleportService"):Teleport(game.PlaceId)
     end
 })
 
 -- ================= WORLD =================
-local TabWorld = Window:CreateTab("World", 4483362458)
+local World = Window:CreateTab("🌍 World", 4483362458)
 
-local brightOn = false
-
-TabWorld:CreateToggle({
+World:CreateToggle({
     Name = "Full Bright",
     CurrentValue = false,
-    Callback = function(state)
-        brightOn = state
-
-        if brightOn then
+    Callback = function(v)
+        if v then
             game.Lighting.Brightness = 5
             game.Lighting.ClockTime = 12
         else
@@ -142,18 +117,16 @@ TabWorld:CreateToggle({
     end
 })
 
--- ================= TELEPORT =================
-local TabTP = Window:CreateTab("Teleport", 4483362458)
+-- ================= UI =================
+local UITab = Window:CreateTab("🎨 UI", 4483362458)
 
-TabTP:CreateButton({
-    Name = "Teleport lên cao",
+UITab:CreateButton({
+    Name = "Thông báo test",
     Callback = function()
-        char:MoveTo(root.Position + Vector3.new(0,100,0))
+        Rayfield:Notify({
+            Title = "Phat Hub",
+            Content = "GUI đang hoạt động!",
+            Duration = 3
+        })
     end
 })
-
--- ================= INFO =================
-local TabInfo = Window:CreateTab("Info", 4483362458)
-
-TabInfo:CreateLabel("Phat Hub Pro v4")
-TabInfo:CreateLabel("FULL TOGGLE SYSTEM")
