@@ -130,3 +130,34 @@ UITab:CreateButton({
         })
     end
 })
+
+-- ================= FRAM QUIÁI =================
+local FramQuaiTab = Window:CreateTab("🏰 Fram Quái", 4483362458)
+
+FramQuaiTab:CreateToggle({
+    Name = "Fram Quái",
+    CurrentValue = false,
+    Callback = function(state)
+        if state then
+            for _,v in pairs(workspace:GetDescendants()) do
+                if v:FindFirstChild("Humanoid") and v ~= char then
+                    if v:FindFirstChild("Name").Value == "Quái" then
+                        -- Kẻ thù tầm bắn, hãy thay đổi giá trị cho phù hợp
+                        local Distance = (v.HumanoidRootPart.Position - root.Position).Magnitude
+                        if Distance <= 100 then
+                            -- Kẻ thù tầm bắn, hãy thay đổi giá trị cho phù hợp
+                            humanoid.WalkTo(v.HumanoidRootPart.Position)
+                            wait(2)
+                            humanoid.WalkTo(v.HumanoidRootPart.Position)
+                            wait(2)
+                            humanoid.WalkTo(v.HumanoidRootPart.Position)
+                            wait(2)
+                            -- Bắn kẻ thù, hãy thay đổi giá trị cho phù hợp
+                            fireclickdetector(v.HumanoidRootPart/head/clikdetector)
+                        end
+                    end
+                end
+            end
+        end
+    end
+})
