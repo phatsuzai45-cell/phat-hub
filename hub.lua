@@ -1,51 +1,55 @@
 -- Load
 repeat task.wait() until game.Players.LocalPlayer.Character
 
+local player = game.Players.LocalPlayer
+
+-- Blur nền (giống hub xịn)
+local blur = Instance.new("BlurEffect")
+blur.Size = 15
+blur.Parent = game.Lighting
+
+-- UI Library đẹp
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
-local player = game.Players.LocalPlayer
-local char = player.Character or player.CharacterAdded:Wait()
-local humanoid = char:WaitForChild("Humanoid")
-local root = char:WaitForChild("HumanoidRootPart")
-
--- Window đẹp hơn
 local Window = Rayfield:CreateWindow({
-    Name = "Phat Hub Premium",
+    Name = "Phat Hub Ultra",
     LoadingTitle = "Phat Hub",
-    LoadingSubtitle = "Premium UI",
+    LoadingSubtitle = "Banana Style",
     ConfigurationSaving = {
         Enabled = true,
         FolderName = "PhatHub",
         FileName = "Config"
-    }
+    },
+    Discord = {
+        Enabled = false
+    },
+    KeySystem = false
 })
 
--- ================= FPS =================
-local FPS = Window:CreateTab("⚡ FPS", 4483362458)
+-- ================= HOME =================
+local Home = Window:CreateTab("🏠 Home", 4483362458)
 
-FPS:CreateSection("Performance")
+Home:CreateParagraph({
+    Title = "Phat Hub Ultra",
+    Content = "GUI style giống Banana Hub 😎"
+})
 
-FPS:CreateToggle({
-    Name = "FPS Boost",
-    CurrentValue = false,
-    Callback = function(state)
-        if state then
-            for _,v in pairs(game:GetDescendants()) do
-                if v:IsA("Texture") or v:IsA("Decal") then
-                    v:Destroy()
-                elseif v:IsA("ParticleEmitter") then
-                    v.Enabled = false
-                end
-            end
-            game.Lighting.GlobalShadows = false
-        end
+Home:CreateButton({
+    Name = "Test Notify",
+    Callback = function()
+        Rayfield:Notify({
+            Title = "Phat Hub",
+            Content = "Đang chạy mượt 😎",
+            Duration = 3
+        })
     end
 })
 
 -- ================= PLAYER =================
 local PlayerTab = Window:CreateTab("🧍 Player", 4483362458)
 
-PlayerTab:CreateSection("Movement")
+local char = player.Character or player.CharacterAdded:Wait()
+local humanoid = char:WaitForChild("Humanoid")
 
 PlayerTab:CreateSlider({
     Name = "Speed",
@@ -67,16 +71,34 @@ PlayerTab:CreateSlider({
     end
 })
 
+-- ================= FPS =================
+local FPS = Window:CreateTab("⚡ FPS", 4483362458)
+
+FPS:CreateToggle({
+    Name = "FPS Boost",
+    CurrentValue = false,
+    Callback = function(state)
+        if state then
+            for _,v in pairs(game:GetDescendants()) do
+                if v:IsA("Texture") or v:IsA("Decal") then
+                    v:Destroy()
+                elseif v:IsA("ParticleEmitter") then
+                    v.Enabled = false
+                end
+            end
+            game.Lighting.GlobalShadows = false
+        end
+    end
+})
+
 -- ================= FARM SUPPORT =================
-local FarmTab = Window:CreateTab("⚔️ Farm", 4483362458)
+local Farm = Window:CreateTab("⚔️ Farm", 4483362458)
 
-FarmTab:CreateSection("Support Farm")
-
-FarmTab:CreateButton({
-    Name = "Teleport gần quái gần nhất",
+Farm:CreateButton({
+    Name = "Teleport gần quái",
     Callback = function()
-        local nearest
-        local dist = math.huge
+        local root = char:WaitForChild("HumanoidRootPart")
+        local nearest, dist = nil, math.huge
 
         for _,v in pairs(workspace:GetDescendants()) do
             if v:FindFirstChild("Humanoid") and v ~= char then
@@ -94,70 +116,21 @@ FarmTab:CreateButton({
     end
 })
 
-FarmTab:CreateButton({
-    Name = "Nhảy server (server hop)",
+-- ================= UI SETTINGS =================
+local UI = Window:CreateTab("🎨 UI", 4483362458)
+
+UI:CreateButton({
+    Name = "Tắt Blur",
     Callback = function()
-        game:GetService("TeleportService"):Teleport(game.PlaceId)
+        blur:Destroy()
     end
 })
 
--- ================= WORLD =================
-local World = Window:CreateTab("🌍 World", 4483362458)
-
-World:CreateToggle({
-    Name = "Full Bright",
-    CurrentValue = false,
-    Callback = function(v)
-        if v then
-            game.Lighting.Brightness = 5
-            game.Lighting.ClockTime = 12
-        else
-            game.Lighting.Brightness = 1
-        end
-    end
-})
-
--- ================= UI =================
-local UITab = Window:CreateTab("🎨 UI", 4483362458)
-
-UITab:CreateButton({
-    Name = "Thông báo test",
+UI:CreateButton({
+    Name = "Bật Blur lại",
     Callback = function()
-        Rayfield:Notify({
-            Title = "Phat Hub",
-            Content = "GUI đang hoạt động!",
-            Duration = 3
-        })
-    end
-})
-
--- ================= FRAM QUIÁI =================
-local FramQuaiTab = Window:CreateTab("🏰 Fram Quái", 4483362458)
-
-FramQuaiTab:CreateToggle({
-    Name = "Fram Quái",
-    CurrentValue = false,
-    Callback = function(state)
-        if state then
-            for _,v in pairs(workspace:GetDescendants()) do
-                if v:FindFirstChild("Humanoid") and v ~= char then
-                    if v:FindFirstChild("Name").Value == "Quái" then
-                        -- Kẻ thù tầm bắn, hãy thay đổi giá trị cho phù hợp
-                        local Distance = (v.HumanoidRootPart.Position - root.Position).Magnitude
-                        if Distance <= 100 then
-                            -- Kẻ thù tầm bắn, hãy thay đổi giá trị cho phù hợp
-                            humanoid.WalkTo(v.HumanoidRootPart.Position)
-                            wait(2)
-                            humanoid.WalkTo(v.HumanoidRootPart.Position)
-                            wait(2)
-                            humanoid.WalkTo(v.HumanoidRootPart.Position)
-                            wait(2)
-                            -- Bắn kẻ thù, hãy thay đổi giá trị cho phù hợp
-                            fireclickdetector(v.HumanoidRootPart/head/clikdetector)
-                        end
-                    end
-                end
-            end
-        end
+        blur = Instance.new("BlurEffect")
+        blur.Size = 15
+        blur.Parent = game.Lighting
     end
 })
