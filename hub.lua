@@ -1,4 +1,4 @@
--- Đợi load nhân vật
+-- Load nhân vật
 repeat wait() until game.Players.LocalPlayer.Character
 
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
@@ -6,108 +6,154 @@ local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local player = game.Players.LocalPlayer
 local char = player.Character or player.CharacterAdded:Wait()
 local humanoid = char:WaitForChild("Humanoid")
+local root = char:WaitForChild("HumanoidRootPart")
 
 local Window = Rayfield:CreateWindow({
-    Name = "Phat Hub Pro",
+    Name = "Phat Hub Pro v4",
     LoadingTitle = "Loading...",
     LoadingSubtitle = "by Phat",
     ConfigurationSaving = {Enabled = false}
 })
 
--- ================= TAB FPS =================
+-- ================= FPS =================
 local TabFPS = Window:CreateTab("FPS", 4483362458)
 
-TabFPS:CreateButton({
-    Name = "Boost FPS",
-    Callback = function()
-        for i,v in pairs(game:GetDescendants()) do
-            if v:IsA("Texture") or v:IsA("Decal") then
-                v:Destroy()
-            elseif v:IsA("ParticleEmitter") or v:IsA("Trail") then
-                v.Enabled = false
-            elseif v:IsA("PointLight") then
-                v.Enabled = false
+local fpsOn = false
+
+TabFPS:CreateToggle({
+    Name = "FPS Boost",
+    CurrentValue = false,
+    Callback = function(state)
+        fpsOn = state
+
+        if fpsOn then
+            for i,v in pairs(game:GetDescendants()) do
+                if v:IsA("Texture") or v:IsA("Decal") then
+                    v:Destroy()
+                elseif v:IsA("ParticleEmitter") then
+                    v.Enabled = false
+                end
             end
+            game.Lighting.GlobalShadows = false
         end
-
-        game.Lighting.GlobalShadows = false
-
-        Rayfield:Notify({
-            Title = "FPS",
-            Content = "Đã giảm lag",
-            Duration = 3
-        })
     end
 })
 
--- ================= TAB PLAYER =================
+-- ================= PLAYER =================
 local TabPlayer = Window:CreateTab("Player", 4483362458)
 
-TabPlayer:CreateSlider({
-    Name = "WalkSpeed",
-    Range = {16, 150},
-    Increment = 1,
-    CurrentValue = 16,
-    Callback = function(Value)
-        humanoid.WalkSpeed = Value
+-- WalkSpeed Toggle
+local speedOn = false
+
+TabPlayer:CreateToggle({
+    Name = "Speed x3",
+    CurrentValue = false,
+    Callback = function(state)
+        speedOn = state
+
+        while speedOn do
+            wait()
+            humanoid.WalkSpeed = 60
+        end
+
+        humanoid.WalkSpeed = 16
     end
 })
 
-TabPlayer:CreateSlider({
-    Name = "JumpPower",
-    Range = {50, 150},
-    Increment = 1,
-    CurrentValue = 50,
-    Callback = function(Value)
-        humanoid.JumpPower = Value
+-- Jump Toggle
+local jumpOn = false
+
+TabPlayer:CreateToggle({
+    Name = "High Jump",
+    CurrentValue = false,
+    Callback = function(state)
+        jumpOn = state
+
+        while jumpOn do
+            wait()
+            humanoid.JumpPower = 100
+        end
+
+        humanoid.JumpPower = 50
     end
 })
 
-TabPlayer:CreateButton({
-    Name = "Reset Character",
-    Callback = function()
-        char:BreakJoints()
+-- ================= FLY =================
+local flyOn = false
+
+TabPlayer:CreateToggle({
+    Name = "Fly",
+    CurrentValue = false,
+    Callback = function(state)
+        flyOn = state
+
+        if flyOn then
+            local bv = Instance.new("BodyVelocity")
+            bv.MaxForce = Vector3.new(9e9,9e9,9e9)
+            bv.Parent = root
+
+            while flyOn do
+                wait()
+                bv.Velocity = workspace.CurrentCamera.CFrame.LookVector * 50
+            end
+
+            bv:Destroy()
+        end
     end
 })
 
--- ================= TAB WORLD =================
+-- ================= NOCLIP =================
+local noclipOn = false
+
+TabPlayer:CreateToggle({
+    Name = "Noclip",
+    CurrentValue = false,
+    Callback = function(state)
+        noclipOn = state
+
+        while noclipOn do
+            wait()
+            for i,v in pairs(char:GetDescendants()) do
+                if v:IsA("BasePart") then
+                    v.CanCollide = false
+                end
+            end
+        end
+    end
+})
+
+-- ================= WORLD =================
 local TabWorld = Window:CreateTab("World", 4483362458)
 
-TabWorld:CreateButton({
+local brightOn = false
+
+TabWorld:CreateToggle({
     Name = "Full Bright",
-    Callback = function()
-        game.Lighting.Brightness = 5
-        game.Lighting.ClockTime = 12
-        game.Lighting.FogEnd = 9e9
+    CurrentValue = false,
+    Callback = function(state)
+        brightOn = state
+
+        if brightOn then
+            game.Lighting.Brightness = 5
+            game.Lighting.ClockTime = 12
+        else
+            game.Lighting.Brightness = 1
+        end
     end
 })
 
-TabWorld:CreateButton({
-    Name = "Remove Fog",
-    Callback = function()
-        game.Lighting.FogEnd = 9e9
-    end
-})
-
--- ================= TAB TELEPORT =================
+-- ================= TELEPORT =================
 local TabTP = Window:CreateTab("Teleport", 4483362458)
 
 TabTP:CreateButton({
     Name = "Teleport lên cao",
     Callback = function()
-        char:MoveTo(char.HumanoidRootPart.Position + Vector3.new(0,100,0))
+        char:MoveTo(root.Position + Vector3.new(0,100,0))
     end
 })
 
-TabTP:CreateButton({
-    Name = "Teleport về spawn",
-    Callback = function()
-        char:MoveTo(Vector3.new(0,10,0))
-    end
-})
-
--- ================= TAB INFO =================
+-- ================= INFO =================
 local TabInfo = Window:CreateTab("Info", 4483362458)
 
-TabInfo:CreateLabel("Phat Hub Pro v2")
-TabInfo:CreateLabel("FPS + Player + World + TP")
+TabInfo:CreateLabel("Phat Hub Pro v4")
+TabInfo:CreateLabel("FULL TOGGLE SYSTEM")
