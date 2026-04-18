@@ -6,18 +6,18 @@ local char = player.Character or player.CharacterAdded:Wait()
 local humanoid = char:WaitForChild("Humanoid")
 local root = char:WaitForChild("HumanoidRootPart")
 
--- BLUR
+-- BLUR (safe)
 local blur = Instance.new("BlurEffect")
-blur.Size = 15
+blur.Size = 0
 blur.Parent = game.Lighting
 
 -- UI
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
-    Name = "Phat Hub MAX FINAL",
+    Name = "Phat Hub Clean Pro",
     LoadingTitle = "Loading...",
-    LoadingSubtitle = "Ultra Pro",
+    LoadingSubtitle = "Stable Version",
     ConfigurationSaving = {
         Enabled = true,
         FolderName = "PhatHub",
@@ -25,45 +25,18 @@ local Window = Rayfield:CreateWindow({
     }
 })
 
--- ANIMATION
-local TweenService = game:GetService("TweenService")
-task.spawn(function()
-    task.wait(0.5)
-    local gui = game.CoreGui:FindFirstChild("Rayfield")
-    if gui then
-        gui.Size = UDim2.new(0,0,0,0)
-        TweenService:Create(gui, TweenInfo.new(0.5), {
-            Size = UDim2.new(0,600,0,400)
-        }):Play()
-    end
-end)
-
 -- ================= PLAYER =================
 local PlayerTab = Window:CreateTab("🧍 Player", 4483362458)
 
 PlayerTab:CreateSlider({
-    Name = "Speed",
-    Range = {16,120},
+    Name = "WalkSpeed (client)",
+    Range = {16,50},
     Increment = 1,
     CurrentValue = 16,
     Callback = function(v)
         humanoid.WalkSpeed = v
     end
 })
-
-PlayerTab:CreateToggle({
-    Name = "Infinite Jump",
-    CurrentValue = false,
-    Callback = function(v)
-        getgenv().infJump = v
-    end
-})
-
-game:GetService("UserInputService").JumpRequest:Connect(function()
-    if getgenv().infJump then
-        humanoid:ChangeState("Jumping")
-    end
-end)
 
 -- ================= FPS =================
 local FPS = Window:CreateTab("⚡ FPS", 4483362458)
@@ -85,27 +58,7 @@ FPS:CreateToggle({
     end
 })
 
--- ================= ESP =================
-local ESP = Window:CreateTab("👁️ ESP", 4483362458)
-
-ESP:CreateToggle({
-    Name = "ESP Player",
-    CurrentValue = false,
-    Callback = function(v)
-        while v do
-            task.wait()
-            for _,plr in pairs(game.Players:GetPlayers()) do
-                if plr ~= player and plr.Character then
-                    if not plr.Character:FindFirstChild("Highlight") then
-                        Instance.new("Highlight", plr.Character)
-                    end
-                end
-            end
-        end
-    end
-})
-
--- ================= FRUIT SYSTEM =================
+-- ================= FRUITS =================
 local FruitTab = Window:CreateTab("🍏 Fruits", 4483362458)
 
 local function getNearestFruit()
@@ -126,17 +79,7 @@ local function getNearestFruit()
 end
 
 FruitTab:CreateButton({
-    Name = "Teleport tới Fruit",
-    Callback = function()
-        local f = getNearestFruit()
-        if f then
-            root.CFrame = f.Handle.CFrame + Vector3.new(0,3,0)
-        end
-    end
-})
-
-FruitTab:CreateButton({
-    Name = "Xem tên Fruit",
+    Name = "Xem Fruit gần nhất",
     Callback = function()
         local f = getNearestFruit()
         if f then
@@ -150,19 +93,18 @@ FruitTab:CreateButton({
 })
 
 FruitTab:CreateToggle({
-    Name = "ESP Fruits",
+    Name = "Theo dõi Fruit",
     CurrentValue = false,
     Callback = function(v)
         while v do
-            task.wait()
-            for _,f in pairs(workspace:GetDescendants()) do
-                if f:IsA("Tool") and f:FindFirstChild("Handle") then
-                    if string.find(f.Name,"Fruit") then
-                        if not f:FindFirstChild("Highlight") then
-                            Instance.new("Highlight", f)
-                        end
-                    end
-                end
+            task.wait(3)
+            local f = getNearestFruit()
+            if f then
+                Rayfield:Notify({
+                    Title = "Fruit detected",
+                    Content = f.Name,
+                    Duration = 2
+                })
             end
         end
     end
@@ -171,60 +113,27 @@ FruitTab:CreateToggle({
 -- ================= SHOP =================
 local Shop = Window:CreateTab("🛒 Shop", 4483362458)
 
-local fruits = {
-    "Rocket Fruit","Spin Fruit","Chop Fruit","Spring Fruit",
-    "Bomb Fruit","Smoke Fruit","Flame Fruit","Ice Fruit",
-    "Light Fruit","Magma Fruit","Quake Fruit",
-    "Dragon Fruit","Leopard Fruit"
-}
-
-for _,name in pairs(fruits) do
-    Shop:CreateButton({
-        Name = name,
-        Callback = function()
-            Rayfield:Notify({
-                Title = "Shop",
-                Content = name,
-                Duration = 3
-            })
-        end
-    })
-end
-
 Shop:CreateButton({
-    Name = "🎲 Random Fruit",
+    Name = "Tìm Fruit Dealer",
     Callback = function()
-        local pick = fruits[math.random(1,#fruits)]
-        Rayfield:Notify({
-            Title = "Random",
-            Content = pick,
-            Duration = 4
-        })
+        for _,v in pairs(workspace:GetDescendants()) do
+            if v:IsA("Model") and string.find(v.Name,"Dealer") then
+                if v:FindFirstChild("HumanoidRootPart") then
+                    root.CFrame = v.HumanoidRootPart.CFrame + Vector3.new(0,3,0)
+                    break
+                end
+            end
+        end
     end
 })
 
--- ================= TELEPORT =================
-local TP = Window:CreateTab("🚀 Teleport", 4483362458)
+-- ================= UI =================
+local UI = Window:CreateTab("🎨 UI", 4483362458)
 
-TP:CreateButton({
-    Name = "Bay lên cao",
-    Callback = function()
-        root.CFrame = root.CFrame + Vector3.new(0,150,0)
-    end
-})
-
--- ================= WORLD =================
-local World = Window:CreateTab("🌍 World", 4483362458)
-
-World:CreateToggle({
-    Name = "Full Bright",
+UI:CreateToggle({
+    Name = "Blur UI",
     CurrentValue = false,
     Callback = function(v)
-        if v then
-            game.Lighting.Brightness = 5
-            game.Lighting.ClockTime = 12
-        else
-            game.Lighting.Brightness = 1
-        end
+        blur.Size = v and 10 or 0
     end
 })
