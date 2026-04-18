@@ -1,139 +1,151 @@
--- LOAD
-repeat task.wait() until game.Players.LocalPlayer.Character
+-- SERVICES
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UIS = game:GetService("UserInputService")
 
-local player = game.Players.LocalPlayer
-local char = player.Character or player.CharacterAdded:Wait()
-local humanoid = char:WaitForChild("Humanoid")
-local root = char:WaitForChild("HumanoidRootPart")
+local player = Players.LocalPlayer
 
--- BLUR (safe)
-local blur = Instance.new("BlurEffect")
-blur.Size = 0
-blur.Parent = game.Lighting
+-- GUI
+local gui = Instance.new("ScreenGui")
+gui.Name = "PhatHubUI"
+gui.Parent = game.CoreGui
 
--- UI
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+-- MAIN FRAME
+local main = Instance.new("Frame", gui)
+main.Size = UDim2.new(0, 0, 0, 0)
+main.Position = UDim2.new(0.5, -150, 0.5, -100)
+main.BackgroundColor3 = Color3.fromRGB(20,20,20)
+main.AnchorPoint = Vector2.new(0.5,0.5)
+main.ClipsDescendants = true
 
-local Window = Rayfield:CreateWindow({
-    Name = "Phat Hub Clean Pro",
-    LoadingTitle = "Loading...",
-    LoadingSubtitle = "Stable Version",
-    ConfigurationSaving = {
-        Enabled = true,
-        FolderName = "PhatHub",
-        FileName = "Config"
-    }
-})
+-- BO GÓC
+Instance.new("UICorner", main).CornerRadius = UDim.new(0,12)
 
--- ================= PLAYER =================
-local PlayerTab = Window:CreateTab("🧍 Player", 4483362458)
+-- SHADOW
+local shadow = Instance.new("ImageLabel", main)
+shadow.Size = UDim2.new(1,40,1,40)
+shadow.Position = UDim2.new(0,-20,0,-20)
+shadow.BackgroundTransparency = 1
+shadow.Image = "rbxassetid://1316045217"
+shadow.ImageTransparency = 0.7
 
-PlayerTab:CreateSlider({
-    Name = "WalkSpeed (client)",
-    Range = {16,50},
-    Increment = 1,
-    CurrentValue = 16,
-    Callback = function(v)
-        humanoid.WalkSpeed = v
-    end
-})
+-- TITLE BAR
+local top = Instance.new("Frame", main)
+top.Size = UDim2.new(1,0,0,40)
+top.BackgroundColor3 = Color3.fromRGB(30,30,30)
 
--- ================= FPS =================
-local FPS = Window:CreateTab("⚡ FPS", 4483362458)
+Instance.new("UICorner", top).CornerRadius = UDim.new(0,12)
 
-FPS:CreateToggle({
-    Name = "FPS Boost",
-    CurrentValue = false,
-    Callback = function(v)
-        if v then
-            for _,obj in pairs(game:GetDescendants()) do
-                if obj:IsA("Texture") or obj:IsA("Decal") then
-                    obj:Destroy()
-                elseif obj:IsA("ParticleEmitter") then
-                    obj.Enabled = false
-                end
-            end
-            game.Lighting.GlobalShadows = false
-        end
-    end
-})
+local title = Instance.new("TextLabel", top)
+title.Size = UDim2.new(1,0,1,0)
+title.Text = "Phat Hub App UI"
+title.TextColor3 = Color3.fromRGB(255,255,255)
+title.BackgroundTransparency = 1
+title.Font = Enum.Font.GothamBold
+title.TextSize = 16
 
--- ================= FRUITS =================
-local FruitTab = Window:CreateTab("🍏 Fruits", 4483362458)
+-- TAB BUTTONS
+local tabs = Instance.new("Frame", main)
+tabs.Position = UDim2.new(0,0,0,40)
+tabs.Size = UDim2.new(0,100,1,-40)
+tabs.BackgroundColor3 = Color3.fromRGB(25,25,25)
 
-local function getNearestFruit()
-    local nearest, dist = nil, math.huge
-
-    for _,v in pairs(workspace:GetDescendants()) do
-        if v:IsA("Tool") and v:FindFirstChild("Handle") then
-            if string.find(v.Name,"Fruit") then
-                local d = (v.Handle.Position - root.Position).Magnitude
-                if d < dist then
-                    dist = d
-                    nearest = v
-                end
-            end
-        end
-    end
-    return nearest
+local function createTabButton(name, y)
+    local btn = Instance.new("TextButton", tabs)
+    btn.Size = UDim2.new(1,0,0,40)
+    btn.Position = UDim2.new(0,0,0,y)
+    btn.Text = name
+    btn.BackgroundColor3 = Color3.fromRGB(35,35,35)
+    btn.TextColor3 = Color3.fromRGB(255,255,255)
+    btn.Font = Enum.Font.Gotham
+    btn.TextSize = 14
+    return btn
 end
 
-FruitTab:CreateButton({
-    Name = "Xem Fruit gần nhất",
-    Callback = function()
-        local f = getNearestFruit()
-        if f then
-            Rayfield:Notify({
-                Title = "Fruit",
-                Content = f.Name,
-                Duration = 3
-            })
-        end
+local homeBtn = createTabButton("Home",0)
+local fruitBtn = createTabButton("Fruit",40)
+local settingBtn = createTabButton("Settings",80)
+
+-- CONTENT
+local content = Instance.new("Frame", main)
+content.Position = UDim2.new(0,100,0,40)
+content.Size = UDim2.new(1,-100,1,-40)
+content.BackgroundTransparency = 1
+
+-- PAGES
+local pages = {}
+
+local function createPage(name)
+    local page = Instance.new("Frame", content)
+    page.Size = UDim2.new(1,0,1,0)
+    page.Visible = false
+    page.BackgroundTransparency = 1
+    pages[name] = page
+    return page
+end
+
+local homePage = createPage("Home")
+local fruitPage = createPage("Fruit")
+local settingPage = createPage("Settings")
+
+homePage.Visible = true
+
+-- SWITCH TAB
+local function switchTab(name)
+    for i,v in pairs(pages) do
+        v.Visible = false
     end
-})
+    pages[name].Visible = true
+end
 
-FruitTab:CreateToggle({
-    Name = "Theo dõi Fruit",
-    CurrentValue = false,
-    Callback = function(v)
-        while v do
-            task.wait(3)
-            local f = getNearestFruit()
-            if f then
-                Rayfield:Notify({
-                    Title = "Fruit detected",
-                    Content = f.Name,
-                    Duration = 2
-                })
-            end
-        end
+homeBtn.MouseButton1Click:Connect(function()
+    switchTab("Home")
+end)
+
+fruitBtn.MouseButton1Click:Connect(function()
+    switchTab("Fruit")
+end)
+
+settingBtn.MouseButton1Click:Connect(function()
+    switchTab("Settings")
+end)
+
+-- SAMPLE CONTENT
+local label = Instance.new("TextLabel", homePage)
+label.Size = UDim2.new(1,0,0,50)
+label.Text = "Welcome to Phat Hub"
+label.TextColor3 = Color3.new(1,1,1)
+label.BackgroundTransparency = 1
+
+-- ANIMATION OPEN
+TweenService:Create(main, TweenInfo.new(0.4, Enum.EasingStyle.Quad), {
+    Size = UDim2.new(0,300,0,200)
+}):Play()
+
+-- DRAG UI
+local dragging = false
+local dragStart, startPos
+
+top.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = main.Position
     end
-})
+end)
 
--- ================= SHOP =================
-local Shop = Window:CreateTab("🛒 Shop", 4483362458)
+top.InputEnded:Connect(function(input)
+    dragging = false
+end)
 
-Shop:CreateButton({
-    Name = "Tìm Fruit Dealer",
-    Callback = function()
-        for _,v in pairs(workspace:GetDescendants()) do
-            if v:IsA("Model") and string.find(v.Name,"Dealer") then
-                if v:FindFirstChild("HumanoidRootPart") then
-                    root.CFrame = v.HumanoidRootPart.CFrame + Vector3.new(0,3,0)
-                    break
-                end
-            end
-        end
+UIS.InputChanged:Connect(function(input)
+    if dragging then
+        local delta = input.Position - dragStart
+        main.Position = UDim2.new(
+            startPos.X.Scale,
+            startPos.X.Offset + delta.X,
+            startPos.Y.Scale,
+            startPos.Y.Offset + delta.Y
+        )
     end
-})
-
--- ================= UI =================
-local UI = Window:CreateTab("🎨 UI", 4483362458)
-
-UI:CreateToggle({
-    Name = "Blur UI",
-    CurrentValue = false,
-    Callback = function(v)
-        blur.Size = v and 10 or 0
-    end
-})
+end)
