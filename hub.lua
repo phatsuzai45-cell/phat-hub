@@ -15,9 +15,9 @@ blur.Parent = game.Lighting
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
-    Name = "Phat Hub Ultra v7",
+    Name = "Phat Hub MAX FINAL",
     LoadingTitle = "Loading...",
-    LoadingSubtitle = "Full System",
+    LoadingSubtitle = "Ultra Pro",
     ConfigurationSaving = {
         Enabled = true,
         FolderName = "PhatHub",
@@ -25,43 +25,42 @@ local Window = Rayfield:CreateWindow({
     }
 })
 
--- ================= HOME =================
-local Home = Window:CreateTab("🏠 Home", 4483362458)
-Home:CreateParagraph({
-    Title = "Phat Hub Ultra",
-    Content = "Full tính năng 😎"
-})
+-- ANIMATION
+local TweenService = game:GetService("TweenService")
+task.spawn(function()
+    task.wait(0.5)
+    local gui = game.CoreGui:FindFirstChild("Rayfield")
+    if gui then
+        gui.Size = UDim2.new(0,0,0,0)
+        TweenService:Create(gui, TweenInfo.new(0.5), {
+            Size = UDim2.new(0,600,0,400)
+        }):Play()
+    end
+end)
 
 -- ================= PLAYER =================
 local PlayerTab = Window:CreateTab("🧍 Player", 4483362458)
 
--- Speed
-local speedOn = false
-PlayerTab:CreateToggle({
-    Name = "Speed x3",
-    CurrentValue = false,
+PlayerTab:CreateSlider({
+    Name = "Speed",
+    Range = {16,120},
+    Increment = 1,
+    CurrentValue = 16,
     Callback = function(v)
-        speedOn = v
-        while speedOn do
-            task.wait()
-            humanoid.WalkSpeed = 60
-        end
-        humanoid.WalkSpeed = 16
+        humanoid.WalkSpeed = v
     end
 })
 
--- Infinite Jump
-local infJump = false
 PlayerTab:CreateToggle({
     Name = "Infinite Jump",
     CurrentValue = false,
     Callback = function(v)
-        infJump = v
+        getgenv().infJump = v
     end
 })
 
 game:GetService("UserInputService").JumpRequest:Connect(function()
-    if infJump then
+    if getgenv().infJump then
         humanoid:ChangeState("Jumping")
     end
 end)
@@ -72,13 +71,13 @@ local FPS = Window:CreateTab("⚡ FPS", 4483362458)
 FPS:CreateToggle({
     Name = "FPS Boost",
     CurrentValue = false,
-    Callback = function(state)
-        if state then
-            for _,v in pairs(game:GetDescendants()) do
-                if v:IsA("Texture") or v:IsA("Decal") then
-                    v:Destroy()
-                elseif v:IsA("ParticleEmitter") then
-                    v.Enabled = false
+    Callback = function(v)
+        if v then
+            for _,obj in pairs(game:GetDescendants()) do
+                if obj:IsA("Texture") or obj:IsA("Decal") then
+                    obj:Destroy()
+                elseif obj:IsA("ParticleEmitter") then
+                    obj.Enabled = false
                 end
             end
             game.Lighting.GlobalShadows = false
@@ -86,24 +85,19 @@ FPS:CreateToggle({
     end
 })
 
--- ================= ESP PLAYER =================
-local ESPTab = Window:CreateTab("👁️ ESP", 4483362458)
+-- ================= ESP =================
+local ESP = Window:CreateTab("👁️ ESP", 4483362458)
 
-local espOn = false
-ESPTab:CreateToggle({
+ESP:CreateToggle({
     Name = "ESP Player",
     CurrentValue = false,
     Callback = function(v)
-        espOn = v
-
-        while espOn do
+        while v do
             task.wait()
             for _,plr in pairs(game.Players:GetPlayers()) do
                 if plr ~= player and plr.Character then
                     if not plr.Character:FindFirstChild("Highlight") then
-                        local h = Instance.new("Highlight")
-                        h.Parent = plr.Character
-                        h.FillColor = Color3.fromRGB(255,0,0)
+                        Instance.new("Highlight", plr.Character)
                     end
                 end
             end
@@ -111,65 +105,62 @@ ESPTab:CreateToggle({
     end
 })
 
--- ================= FRUITS SYSTEM =================
+-- ================= FRUIT SYSTEM =================
 local FruitTab = Window:CreateTab("🍏 Fruits", 4483362458)
 
--- Tìm trái gần nhất
 local function getNearestFruit()
     local nearest, dist = nil, math.huge
 
     for _,v in pairs(workspace:GetDescendants()) do
-        if v:IsA("Model") and v:FindFirstChild("Handle") then
-            local d = (v.Handle.Position - root.Position).Magnitude
-            if d < dist then
-                dist = d
-                nearest = v.Handle
+        if v:IsA("Tool") and v:FindFirstChild("Handle") then
+            if string.find(v.Name,"Fruit") then
+                local d = (v.Handle.Position - root.Position).Magnitude
+                if d < dist then
+                    dist = d
+                    nearest = v
+                end
             end
         end
     end
     return nearest
 end
 
--- Teleport
 FruitTab:CreateButton({
-    Name = "Teleport tới trái gần nhất",
+    Name = "Teleport tới Fruit",
     Callback = function()
-        local fruit = getNearestFruit()
-        if fruit then
-            root.CFrame = fruit.CFrame + Vector3.new(0,3,0)
+        local f = getNearestFruit()
+        if f then
+            root.CFrame = f.Handle.CFrame + Vector3.new(0,3,0)
         end
     end
 })
 
--- Teleport mượt
 FruitTab:CreateButton({
-    Name = "Teleport mượt",
+    Name = "Xem tên Fruit",
     Callback = function()
-        local fruit = getNearestFruit()
-        if fruit then
-            for i=1,10 do
-                root.CFrame = root.CFrame:Lerp(fruit.CFrame,0.2)
-                task.wait(0.05)
-            end
+        local f = getNearestFruit()
+        if f then
+            Rayfield:Notify({
+                Title = "Fruit",
+                Content = f.Name,
+                Duration = 3
+            })
         end
     end
 })
 
--- ESP trái
-local fruitESP = false
 FruitTab:CreateToggle({
     Name = "ESP Fruits",
     CurrentValue = false,
     Callback = function(v)
-        fruitESP = v
-
-        while fruitESP do
+        while v do
             task.wait()
             for _,f in pairs(workspace:GetDescendants()) do
-                if f:IsA("Model") and f:FindFirstChild("Handle") then
-                    if not f:FindFirstChild("Highlight") then
-                        local h = Instance.new("Highlight", f)
-                        h.FillColor = Color3.fromRGB(0,255,0)
+                if f:IsA("Tool") and f:FindFirstChild("Handle") then
+                    if string.find(f.Name,"Fruit") then
+                        if not f:FindFirstChild("Highlight") then
+                            Instance.new("Highlight", f)
+                        end
                     end
                 end
             end
@@ -177,19 +168,38 @@ FruitTab:CreateToggle({
     end
 })
 
--- Hiện khoảng cách
-FruitTab:CreateButton({
-    Name = "Xem khoảng cách trái",
-    Callback = function()
-        local fruit = getNearestFruit()
-        if fruit then
-            local dist = (fruit.Position - root.Position).Magnitude
+-- ================= SHOP =================
+local Shop = Window:CreateTab("🛒 Shop", 4483362458)
+
+local fruits = {
+    "Rocket Fruit","Spin Fruit","Chop Fruit","Spring Fruit",
+    "Bomb Fruit","Smoke Fruit","Flame Fruit","Ice Fruit",
+    "Light Fruit","Magma Fruit","Quake Fruit",
+    "Dragon Fruit","Leopard Fruit"
+}
+
+for _,name in pairs(fruits) do
+    Shop:CreateButton({
+        Name = name,
+        Callback = function()
             Rayfield:Notify({
-                Title = "Distance",
-                Content = math.floor(dist).." studs",
+                Title = "Shop",
+                Content = name,
                 Duration = 3
             })
         end
+    })
+end
+
+Shop:CreateButton({
+    Name = "🎲 Random Fruit",
+    Callback = function()
+        local pick = fruits[math.random(1,#fruits)]
+        Rayfield:Notify({
+            Title = "Random",
+            Content = pick,
+            Duration = 4
+        })
     end
 })
 
@@ -216,26 +226,5 @@ World:CreateToggle({
         else
             game.Lighting.Brightness = 1
         end
-    end
-})
-
--- ================= UI =================
-local UI = Window:CreateTab("🎨 UI", 4483362458)
-
-UI:CreateButton({
-    Name = "Tắt Blur",
-    Callback = function()
-        blur:Destroy()
-    end
-})
-
-UI:CreateButton({
-    Name = "Thông báo",
-    Callback = function()
-        Rayfield:Notify({
-            Title = "Phat Hub",
-            Content = "Script đang chạy!",
-            Duration = 3
-        })
     end
 })
